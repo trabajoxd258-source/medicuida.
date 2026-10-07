@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important} body{margin:0;font-size:14px} img{max-width:100%}</style>
+</head>
+<body>
+<title>MediCuida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&display=swap">
+<style>
+/* Layout: barra de simulación arriba; debajo, el celular de Doña Carmen y el panel de Andrés lado a lado (pestañas en celular) */
+:root{
+  --bg:#EAF1EE; --surface:#FFFFFF; --surface-2:#F4F8F6; --ink:#10302B; --muted:#56716B; --line:#D2E0DB;
+  --brand:#0E5C52; --brand-ink:#FFFFFF; --brand-soft:#D4ECE5;
+  --ok:#1C7A45; --ok-soft:#DDF3E4; --warn:#9A5B00; --warn-soft:#FCEFD6; --bad:#B42318; --bad-soft:#FBE3E0;
+  --wa:#DCF8C6; --wa-ink:#1B2B22;
+  --f-display:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1513; --surface:#12211E; --surface-2:#172925; --ink:#E5F0EC; --muted:#93ADA6; --line:#25403A;
+  --brand:#5CC6B2; --brand-ink:#06201B; --brand-soft:#173B34;
+  --ok:#52CF8A; --ok-soft:#143323; --warn:#F2AE45; --warn-soft:#3A2A10; --bad:#F3796C; --bad-soft:#3D1B17;
+  --wa:#1F3B2C; --wa-ink:#E3F2E8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1513; --surface:#12211E; --surface-2:#172925; --ink:#E5F0EC; --muted:#93ADA6; --line:#25403A;
+  --brand:#5CC6B2; --brand-ink:#06201B; --brand-soft:#173B34;
+  --ok:#52CF8A; --ok-soft:#143323; --warn:#F2AE45; --warn-soft:#3A2A10; --bad:#F3796C; --bad-soft:#3D1B17;
+  --wa:#1F3B2C; --wa-ink:#E3F2E8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto}
+.num{font-variant-numeric:tabular-nums}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-block:24px 14px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--brand);display:grid;place-items:center}
+.logo svg{width:24px;height:24px}
+.brand h1{font-size:24px;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.tag-ex{font-size:12px;color:var(--muted);max-width:46ch}
+
+/* Barra de simulación */
+.sim{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;box-shadow:0 6px 20px -14px rgba(0,0,0,.4)}
+.clock{display:flex;align-items:baseline;gap:8px;margin-right:auto}
+.clock b{font-family:var(--f-display);font-size:26px;line-height:1}
+.clock span{color:var(--muted);font-size:13px}
+.sim .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 12px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--brand)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand)}
+
+.tabs{display:none;gap:6px;margin-top:12px}
+.tabs button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;font-weight:700}
+.tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+
+.views{display:grid;grid-template-columns:400px minmax(0,1fr);gap:24px;margin-top:20px;align-items:start}
+.col-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.col-head h2{font-size:15px}
+.col-head small{color:var(--muted);font-size:12.5px}
+
+/* ===== Celular de Doña Carmen ===== */
+.phone{background:#0F1A18;border-radius:38px;padding:12px;max-width:380px;margin:0 auto;box-shadow:0 20px 50px -25px rgba(0,0,0,.6)}
+.screen{--fs:1;--c-bg:#FFFFFF;--c-ink:#111;--c-sub:#3B4A47;--c-soft:#F1F5F3;--c-accent:#0E5C52;--c-btn:#1C7A45;--c-btn-sh:#10552F;--c-btn-ink:#FFFFFF;--c-done:#E1F5E8;--c-check:#1C7A45;--c-retry:#FFE7A3;--c-retry-ink:#5A3A00;
+  background:var(--c-bg);color:var(--c-ink);border-radius:28px;min-height:640px;display:flex;flex-direction:column;overflow:hidden;font-size:calc(20px*var(--fs));transition:background .2s,color .2s}
+.screen[data-skin="crema"]{--c-bg:#FFF8EA;--c-soft:#F3E7CC;--c-ink:#2A1E0F;--c-sub:#5C4A33;--c-done:#E9F2DA}
+.screen[data-skin="azul"]{--c-bg:#EEF5FC;--c-soft:#D7E7F7;--c-ink:#0F2236;--c-sub:#3A5068;--c-accent:#1D5FBF;--c-done:#DDEFE4}
+.screen[data-skin="oscuro"]{--c-bg:#111615;--c-ink:#F2F5F4;--c-sub:#BCC9C5;--c-soft:#232C2A;--c-accent:#7FD8C4;--c-done:#173524;--c-retry:#5A4300;--c-retry-ink:#FFE7A3}
+.screen[data-skin="contraste"]{--c-bg:#000000;--c-ink:#FFFFFF;--c-sub:#FFFFFF;--c-soft:#000000;--c-accent:#FFE600;--c-done:#000000;--c-retry:#FFE600;--c-retry-ink:#000000}
+.screen[data-skin="contraste"] .pill-row,.screen[data-skin="contraste"] .next,.screen[data-skin="contraste"] .done{border:2px solid #FFFFFF}
+.screen[data-btn="azul"]{--c-btn:#1D5FBF;--c-btn-sh:#123E80;--c-check:#1D5FBF}
+.screen[data-btn="naranja"]{--c-btn:#C9560A;--c-btn-sh:#8A3C08;--c-check:#C9560A}
+.screen[data-btn="morado"]{--c-btn:#6B3FB5;--c-btn-sh:#46287A;--c-check:#6B3FB5}
+.screen[data-btn="amarillo"]{--c-btn:#FFD800;--c-btn-sh:#A88E00;--c-btn-ink:#111111}
+.screen .bar{display:flex;justify-content:space-between;padding:12px 22px 6px;font-size:14px;font-weight:700}
+.screen .body{flex:1;display:flex;flex-direction:column;gap:16px;padding:10px 20px 22px}
+.big-time{font-family:var(--f-display);font-size:calc(52px*var(--fs));line-height:1;font-weight:700}
+.hello{font-size:calc(22px*var(--fs))}
+.callout{font-size:calc(26px*var(--fs));font-weight:700;line-height:1.2}
+.retry{align-self:flex-start;background:var(--c-retry);color:var(--c-retry-ink);border-radius:999px;padding:4px 14px;font-size:calc(17px*var(--fs));font-weight:700}
+.pill-list{display:flex;flex-direction:column;gap:10px}
+.pill-row{display:flex;align-items:center;gap:14px;background:var(--c-soft);border-radius:18px;padding:12px 14px}
+.pill-row b{display:block;font-size:calc(24px*var(--fs));line-height:1.15}
+.pill-row span{font-size:calc(18px*var(--fs));color:var(--c-sub)}
+.voice{display:flex;align-items:center;gap:10px;border:2px solid var(--c-accent);color:var(--c-accent);background:transparent;border-radius:16px;padding:10px 14px;font-size:calc(19px*var(--fs));font-weight:700}
+.voice svg{width:26px;height:26px;flex:none}
+.take{margin-top:auto;background:var(--c-btn);color:var(--c-btn-ink);border:0;border-radius:24px;padding:26px 16px;font-family:var(--f-display);font-size:calc(32px*var(--fs));font-weight:700;box-shadow:0 6px 0 var(--c-btn-sh);transition:transform .08s}
+.take:active{transform:translateY(4px);box-shadow:0 2px 0 var(--c-btn-sh)}
+.done{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;background:var(--c-done);border-radius:24px;padding:24px 16px}
+.done .check{width:84px;height:84px;border-radius:50%;background:var(--c-check);display:grid;place-items:center}
+.done .check svg{width:48px;height:48px}
+.done b{font-family:var(--f-display);font-size:calc(28px*var(--fs));line-height:1.15}
+.done p{margin:0;font-size:calc(19px*var(--fs))}
+.next{background:var(--c-soft);border-radius:18px;padding:14px 16px}
+.next small{display:block;font-size:calc(16px*var(--fs));color:var(--c-sub)}
+.next b{font-size:calc(24px*var(--fs))}
+.next .names{font-size:calc(19px*var(--fs))}
+.voice-note{font-size:12.5px;color:var(--muted);text-align:center;margin:10px auto 0;max-width:36ch}
+
+/* Pastillas dibujadas */
+.pill{flex:none;width:52px;height:52px;display:grid;place-items:center}
+.pill i{display:block;border:2px solid rgba(0,0,0,.25);box-shadow:inset -4px -5px 0 rgba(0,0,0,.1)}
+.pill .round{width:40px;height:40px;border-radius:50%}
+.pill .oval{width:50px;height:28px;border-radius:50%}
+.pill .capsule{width:50px;height:24px;border-radius:12px}
+.pill.sm{width:30px;height:30px}
+.pill.sm .round{width:22px;height:22px}.pill.sm .oval{width:28px;height:16px}.pill.sm .capsule{width:28px;height:14px;border-radius:7px}
+
+/* ===== Panel de Andrés ===== */
+.panel{display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.card h3{font-size:15px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card h3 small{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:12.5px}
+.status{display:flex;gap:14px;align-items:center;border-radius:var(--r);padding:14px 18px;border:1px solid}
+.status.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ink)}
+.status.bad{background:var(--bad-soft);border-color:var(--bad)}
+.status .dot{width:14px;height:14px;border-radius:50%;flex:none}
+.status.ok .dot{background:var(--ok)}
+.status.bad .dot{background:var(--bad);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px transparent}0%{box-shadow:0 0 0 0 var(--bad)}}
+@media (prefers-reduced-motion:reduce){.status.bad .dot{animation:none}}
+.status b{font-family:var(--f-display);font-size:18px;display:block}
+.status span{color:var(--muted);font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.tl li:first-child{border-top:0}
+.tl .t{font-weight:700}
+.tl .m{font-size:14px;color:var(--muted);min-width:0}
+.chip{font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.chip.pending{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.chip.due{background:var(--brand-soft);color:var(--brand)}
+.chip.retry{background:var(--warn-soft);color:var(--warn)}
+.chip.missed{background:var(--bad-soft);color:var(--bad)}
+.chip.taken{background:var(--ok-soft);color:var(--ok)}
+.chip.late{background:var(--warn-soft);color:var(--warn)}
+
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto}
+.feed li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.feed li .k{width:6px;border-radius:3px;align-self:stretch}
+.feed li.alert .k{background:var(--bad)}.feed li.stock .k{background:var(--warn)}.feed li.info .k{background:var(--ok)}
+.feed li small{color:var(--muted);display:block}
+.empty{color:var(--muted);font-size:14px;margin:0}
+
+.inv{display:flex;flex-direction:column;gap:10px}
+.inv-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center}
+.inv-row .nm{font-weight:700;font-size:14px}
+.inv-row .nm small{font-weight:400;color:var(--muted)}
+.meter{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--brand)}
+.inv-row.low .meter i{background:var(--warn)}
+.inv-row .d{font-size:13px;text-align:right;color:var(--muted)}
+.inv-row.low .d{color:var(--warn);font-weight:700}
+
+.wa{background:var(--wa);color:var(--wa-ink);border-radius:12px 12px 12px 2px;padding:12px 14px;font-size:14px;white-space:pre-line}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.hint{font-size:12.5px;color:var(--muted)}
+
+form.cfg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+form.cfg label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+form.cfg .w2{grid-column:span 2}form.cfg .w3{grid-column:span 3}form.cfg .w6{grid-column:span 6}
+form.cfg input,form.cfg select,form.cfg textarea{border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:8px 10px;color:var(--ink);width:100%}
+form.cfg textarea{resize:vertical;min-height:58px}
+
+/* Modal reporte */
+.modal{position:fixed;inset:0;background:rgba(5,15,13,.55);display:grid;place-items:center;padding:16px;z-index:20}
+.sheet{background:var(--surface);border-radius:18px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:22px}
+.sheet h2{font-size:20px}
+.sheet .sub{color:var(--muted);font-size:13.5px;margin:4px 0 16px}
+.bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;height:150px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.bars div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;font-size:12px}
+.bars i{display:block;width:100%;max-width:38px;background:var(--brand);border-radius:6px 6px 0 0}
+.bars i.lowv{background:var(--warn)}
+.blabels{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;font-size:12px;color:var(--muted);text-align:center}
+.tbl-wrap{overflow-x:auto;margin-top:16px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+@media (max-width:920px){
+  .tabs{display:flex}
+  .views{grid-template-columns:minmax(0,1fr)}
+  .views[data-tab="carmen"] #panelCol{display:none}
+  .views[data-tab="andres"] #carmenCol{display:none}
+}
+@media (max-width:640px){
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  form.cfg{grid-template-columns:repeat(2,minmax(0,1fr))}
+  form.cfg .w2,form.cfg .w3{grid-column:span 1}form.cfg .w6{grid-column:span 2}
+  .clock b{font-size:22px}
+}
+@media (max-width:420px){.screen{font-size:calc(18px*var(--fs))}.big-time{font-size:calc(44px*var(--fs))}.take{font-size:calc(28px*var(--fs))}}
+
+/* ===== Registro desde cero ===== */
+.setup{max-width:860px;margin:8px auto 0}
+.welcome{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px}
+.welcome h2{font-size:clamp(24px,4vw,34px);line-height:1.15;letter-spacing:-.01em}
+.welcome p{color:var(--muted);margin:10px 0 0;max-width:52ch}
+.choices{display:grid;gap:12px}
+.choice{display:flex;gap:14px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--surface-2);border-radius:16px;padding:16px 18px;color:var(--ink)}
+.choice:hover{border-color:var(--brand)}
+.choice.main{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.choice b{display:block;font-family:var(--f-display);font-size:17px}
+.choice span{font-size:13.5px;opacity:.85}
+.choice .ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.18);font-family:var(--f-display);font-weight:700}
+.choice:not(.main) .ic{background:var(--brand-soft);color:var(--brand)}
+.wizard{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px}
+.steps{display:flex;gap:8px;list-style:none;margin:0 0 20px;padding:0;flex-wrap:wrap}
+.steps li{white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line)}
+.steps li i{font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--ink);font-weight:700;font-size:12px}
+.steps li.on{color:var(--ink);border-color:var(--brand)}
+.steps li.on i{background:var(--brand);color:var(--brand-ink)}
+.steps li.past i{background:var(--ok);color:#fff}
+.wizard h2{font-size:22px}
+.wizard .lead{color:var(--muted);margin:4px 0 18px;font-size:14px}
+.fgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.fgrid label,.fl{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted);min-width:0}
+.fgrid .w2{grid-column:span 2}.fgrid .w3{grid-column:span 3}.fgrid .w4{grid-column:span 4}.fgrid .w6{grid-column:span 6}
+.fgrid input,.fgrid select,.fgrid textarea{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;color:var(--ink);width:100%;font-size:15px}
+.fgrid textarea{resize:vertical;min-height:64px}
+.fgrid input[aria-invalid="true"]{border-color:var(--bad)}
+.hintline{font-size:12px;color:var(--muted)}
+.err{color:var(--bad);font-size:13.5px;font-weight:700;margin:12px 0 0}
+.wnav{display:flex;justify-content:space-between;gap:10px;margin-top:22px;flex-wrap:wrap}
+.times{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.times input{width:auto!important;min-width:120px}
+.times .x{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:30px;height:30px;line-height:1;color:var(--muted)}
+.medlist{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.medlist li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.medlist li b{display:block}
+.medlist li span{font-size:13px;color:var(--muted)}
+.medlist .del{border:0;background:transparent;color:var(--bad);font-weight:700;font-size:13px}
+.emptymeds{margin:18px 0 0;padding:14px;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted);font-size:14px}
+.summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:4px}
+.summary div{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.summary small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.wa-btn{background:#1FA855;border-color:#1FA855;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.wa-btn:hover{border-color:#178A45;background:#178A45}
+.wa-btn svg{width:16px;height:16px}
+.vbox{border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end}
+.vgrid label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted);min-width:0}
+.vgrid select,.vgrid input[type=range]{width:100%}
+.vgrid select{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;color:var(--ink)}
+.vrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;grid-column:1/-1}
+.rec-on{background:var(--bad)!important;border-color:var(--bad)!important;color:#fff!important}
+.status .wa-btn{margin-top:8px}
+@media (max-width:640px){.vgrid{grid-template-columns:minmax(0,1fr)}}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.dctl{display:flex;flex-direction:column;gap:12px}
+.dctl fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.dctl legend{font-size:13px;color:var(--muted);padding:0;margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0}
+.seg span{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13.5px;color:var(--ink);cursor:pointer}
+.seg input:checked+span{border-color:var(--brand);background:var(--brand-soft);font-weight:700}
+.seg input:focus-visible+span{outline:3px solid var(--brand);outline-offset:2px}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25);display:inline-block}
+.dprev{min-height:0!important;border:1px solid var(--line);border-radius:18px!important;padding:16px;gap:10px}
+.dprev .take{margin-top:6px;padding:14px 12px}
+@media (max-width:720px){.dgrid{grid-template-columns:minmax(0,1fr)}}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--ink);font-weight:700;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:1px;accent-color:#1FA855;flex:none}
+.chk.sm{font-weight:400;font-size:13.5px}
+.auto-body{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.auto-body ol{margin:0;padding-left:20px;font-size:13.5px;color:var(--ink);display:flex;flex-direction:column;gap:4px}
+.auto-body code{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px}
+.auto-body a.lnk{color:var(--brand);font-size:13px;font-weight:700}
+.auto-body label.key{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted);max-width:280px}
+.auto-body label.key input{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;color:var(--ink);font-size:15px}
+.st-ok{color:var(--ok);font-weight:700}.st-bad{color:var(--bad);font-weight:700}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.photo-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.photo-prev{width:56px;height:56px;border-radius:14px;border:1.5px dashed var(--line);background:var(--surface) center/cover no-repeat;flex:none}
+.photo-prev.has{border-style:solid}
+.pill img{width:100%;height:100%;object-fit:cover;border-radius:12px;border:2px solid rgba(0,0,0,.15)}
+.pill.ph{width:64px;height:64px}
+.pill.sm.ph{width:30px;height:30px}.pill.sm img{border-radius:7px;border-width:1px}
+.pill-row .note{display:block;font-size:calc(16px*var(--fs));font-weight:700;color:var(--c-accent)}
+.seg input[type=checkbox]:checked+span{border-color:var(--brand);background:var(--brand-soft);font-weight:700}
+.profile{font-size:13px;color:var(--muted);margin:-4px 0 10px}
+@media (max-width:720px){
+  .welcome{grid-template-columns:minmax(0,1fr);padding:20px}
+  .fgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fgrid .w2,.fgrid .w3,.fgrid .w4{grid-column:span 2}.fgrid .w6{grid-column:span 2}
+  .summary{grid-template-columns:minmax(0,1fr)}
+  .wizard{padding:18px}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></svg></div>
+      <div><h1>MediCuida</h1><p>Salud para ellos, tranquilidad para ti · Prototipo navegable</p></div>
+    </div>
+    <p class="tag-ex" id="tagEx"></p>
+  </header>
+
+  <!-- ===== Bienvenida y registro ===== -->
+  <section class="setup" id="setup" aria-label="Registro">
+    <div class="welcome" id="welcome">
+      <div>
+        <h2>Configure MediCuida para su familiar</h2>
+        <p>El cuidador registra una sola vez los datos de la persona mayor, los suyos y los medicamentos. Despu&eacute;s, la persona mayor solo ve una pantalla grande con un bot&oacute;n.</p>
+      </div>
+      <div class="choices">
+        <button class="choice main" type="button" id="bStartNew"><span class="ic">+</span><div><b>Registrar desde cero</b><span>Ingresar datos del adulto mayor, del cuidador y los medicamentos</span></div></button>
+        <button class="choice" type="button" id="bStartDemo"><span class="ic">&#9654;</span><div><b>Ver el ejemplo de Do&ntilde;a Carmen</b><span>Caso de los mapas de empat&iacute;a con 5 medicamentos</span></div></button>
+        <button class="choice" type="button" id="bResume" hidden><span class="ic">&#8635;</span><div><b>Continuar con el registro guardado</b><span id="resumeTxt"></span></div></button>
+      </div>
+    </div>
+
+    <form class="wizard" id="wizard" hidden novalidate>
+      <ol class="steps" id="steps">
+        <li data-s="1"><i>1</i>Adulto mayor</li>
+        <li data-s="2"><i>2</i>Cuidador</li>
+        <li data-s="3"><i>3</i>Medicamentos</li>
+        <li data-s="4"><i>4</i>Confirmar</li>
+      </ol>
+
+      <div data-step="1">
+        <h2>Datos del adulto mayor</h2>
+        <p class="lead">Es la persona que toma los medicamentos y usar&aacute; la pantalla del bot&oacute;n.</p>
+        <div class="fgrid">
+          <label class="w3">Nombre completo<input id="sName" autocomplete="off" placeholder="Ej. Carmen Rodr&iacute;guez"></label>
+          <label class="w3">&iquest;C&oacute;mo quiere que la app le diga?<input id="sCall" autocomplete="off" placeholder="Ej. Do&ntilde;a Carmen"></label>
+          <label class="w2">Edad<input id="sAge" type="number" min="40" max="115" placeholder="74"></label>
+          <label class="w2">Sexo<select id="sSex"><option value="">Prefiere no decir</option><option>Mujer</option><option>Hombre</option></select></label>
+          <label class="w2">&iquest;Con qui&eacute;n vive?<select id="sLives"><option value="">Seleccione</option><option>Vive sola o solo</option><option>Con su pareja</option><option>Con hijos o familiares</option><option>Con un cuidador</option><option>En un hogar geri&aacute;trico</option></select></label>
+          <label class="w2">Pa&iacute;s<select id="sCountry"><option>Colombia</option><option>Ecuador</option><option>Per&uacute;</option><option>Venezuela</option><option>Panam&aacute;</option><option>M&eacute;xico</option><option>Espa&ntilde;a</option><option>Estados Unidos</option><option>Otro</option></select></label>
+          <label class="w2" id="lDept">Departamento<select id="sDept"></select></label>
+          <label class="w2" id="lCity">Municipio<select id="sCitySel"></select></label>
+          <label class="w2" id="lRegion" hidden>Regi&oacute;n o estado<input id="sRegion" autocomplete="off"></label>
+          <label class="w2" id="lCityTxt" hidden>Ciudad<input id="sCityTxt" autocomplete="off"></label>
+          <label class="w3" id="lEps">EPS<select id="sEpsSel"><option value="">Seleccione su EPS</option><option>Nueva EPS</option><option>Sanitas</option><option>Sura</option><option>Salud Total</option><option>Compensar</option><option>Famisanar</option><option>Coosalud</option><option>Mutual Ser</option><option>Emssanar</option><option>Asmet Salud</option><option>Savia Salud</option><option>Aliansalud</option><option>Capital Salud</option><option>Capresoca</option><option>Cajacopi Atlántico</option><option>Comfenalco Valle</option><option>Comfachocó</option><option>Comfaoriente</option><option>Servicio Occidental de Salud (SOS)</option><option>Salud Mía</option><option>EPS Familiar de Colombia</option><option>Dusakawi</option><option>Anas Wayuu</option><option>Mallamas</option><option>Pijaos Salud</option><option>Fuerzas Militares o Policía</option><option>Magisterio (FOMAG)</option><option>Ecopetrol</option><option value="__otra">Otra</option></select></label>
+          <label class="w3" id="lEpsTxt" hidden>&iquest;Cu&aacute;l EPS o aseguradora?<input id="sEpsTxt" autocomplete="off"></label>
+          <div class="fl w6">Condiciones de salud (opcional)<div class="seg" id="sCondBox"><label><input type="checkbox" value="Hipertensión"><span>Hipertensión</span></label><label><input type="checkbox" value="Diabetes"><span>Diabetes</span></label><label><input type="checkbox" value="Colesterol alto"><span>Colesterol alto</span></label><label><input type="checkbox" value="Enfermedad del corazón"><span>Enfermedad del corazón</span></label><label><input type="checkbox" value="EPOC o asma"><span>EPOC o asma</span></label><label><input type="checkbox" value="Artritis o artrosis"><span>Artritis o artrosis</span></label><label><input type="checkbox" value="Hipotiroidismo"><span>Hipotiroidismo</span></label><label><input type="checkbox" value="Osteoporosis"><span>Osteoporosis</span></label><label><input type="checkbox" value="Alzheimer o demencia"><span>Alzheimer o demencia</span></label><label><input type="checkbox" value="Parkinson"><span>Parkinson</span></label><label><input type="checkbox" value="Enfermedad renal"><span>Enfermedad renal</span></label></div>
+            <input id="sCondOther" autocomplete="off" placeholder="Otra condici&oacute;n (opcional)" style="margin-top:6px"></div>
+          <div class="fl w6">C&oacute;mo se ve su pantalla<div class="vbox" id="wDispBox"></div></div>
+        </div>
+      </div>
+
+      <div data-step="2" hidden>
+        <h2>Datos del cuidador</h2>
+        <p class="lead">Es quien configura la app y recibe las alertas cuando una toma no se confirma.</p>
+        <div class="fgrid">
+          <label class="w3">Nombre<input id="cName" autocomplete="off" placeholder="Ej. Andr&eacute;s"></label>
+          <label class="w3">Parentesco<select id="cRel"><option>Hijo</option><option>Hija</option><option>Nieto</option><option>Nieta</option><option>Esposo</option><option>Esposa</option><option>Hermano</option><option>Hermana</option><option>Cuidador contratado</option><option>Otro</option></select></label>
+          <label class="w3">Celular (para SMS y WhatsApp)<span style="display:flex;gap:6px"><select id="cCode" style="width:auto" aria-label="Indicativo"><option value="57">+57 CO</option><option value="593">+593 EC</option><option value="51">+51 PE</option><option value="58">+58 VE</option><option value="507">+507 PA</option><option value="52">+52 MX</option><option value="34">+34 ES</option><option value="1">+1 US</option></select><input id="cPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="300 123 4567" style="flex:1;min-width:0"></span></label>
+          <label class="w3">&iquest;C&oacute;mo le dice usted al adulto mayor?<input id="cCalls" autocomplete="off" placeholder="Ej. Mam&aacute;"></label>
+          <label class="w6">Mensaje de voz del recordatorio<textarea id="cVoice"></textarea><span class="hintline">{hora} se reemplaza por la hora de la toma.</span></label>
+          <div class="fl w6">Voz del recordatorio<div class="vbox" id="wVoiceBox"></div></div>
+          <div class="w6"><a class="btn wa-btn" id="wWaTest" target="_blank" rel="noopener" href="https://wa.me/"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2l-.4-.3z"/></svg> Enviar mensaje de prueba por WhatsApp</a> <span class="hintline">Abre WhatsApp con el mensaje listo para el celular registrado.</span></div>
+          <div class="fl w6">Envío automático de alertas<div class="vbox" id="wAutoBox"></div></div>
+        </div>
+      </div>
+
+      <div data-step="3" hidden>
+        <h2>Medicamentos</h2>
+        <p class="lead">Agregue cada medicamento con su horario. El color y la forma ayudan a reconocer la pastilla.</p>
+        <div class="fgrid">
+          <label class="w3">Medicamento<input id="mName" list="medNames" autocomplete="off" placeholder="Escriba o elija: Losart&aacute;n"></label>
+          <label class="w3">Dosis<input id="mDose" list="doseList" autocomplete="off" placeholder="Ej. 50 mg"></label>
+          <label class="w2">Presentaci&oacute;n<select id="mForm"><option>tableta</option><option>c&aacute;psula</option><option>gotas</option><option>ml de jarabe</option><option>inhalaci&oacute;n</option><option>unidades de insulina</option><option>sobre</option></select></label>
+          <label class="w2">Cantidad por toma<input id="mQty" type="number" min="1" max="60" value="1"></label>
+          <label class="w2">Indicaci&oacute;n<select id="mNote"><option value="">Sin indicaci&oacute;n</option><option>Con comida</option><option>En ayunas</option><option>Antes de dormir</option><option>Con un vaso de agua</option></select></label>
+          <div class="fl w6">Horarios
+            <div class="seg" id="mPresets"><label><input type="radio" name="mpre" value="08:00"><span>1 vez al d&iacute;a</span></label><label><input type="radio" name="mpre" value="08:00,20:00"><span>Cada 12 horas</span></label><label><input type="radio" name="mpre" value="06:00,14:00,22:00"><span>Cada 8 horas</span></label><label><input type="radio" name="mpre" value="07:00,12:30,19:00"><span>Desayuno, almuerzo y cena</span></label><label><input type="radio" name="mpre" value="21:00"><span>Antes de dormir</span></label></div>
+            <div class="times" id="mTimes"></div>
+            <button class="btn" type="button" id="bAddTime" style="align-self:flex-start">+ Agregar otro horario</button>
+          </div>
+          <div class="fl w6">Foto del medicamento (opcional)
+            <div class="photo-row"><span class="photo-prev" id="mPhotoPrev" aria-hidden="true"></span>
+              <label class="btn" for="mPhoto" style="cursor:pointer">Tomar o subir foto</label><input id="mPhoto" type="file" accept="image/*" capture="environment" class="vh">
+              <button class="btn" type="button" id="mPhotoDel" hidden>Quitar foto</button>
+              <span class="hintline">Una foto de la pastilla o de la caja ayuda a reconocerla.</span></div>
+          </div>
+          <label class="w2">Color<select id="mColor"><option value="#F2C14E">Amarilla</option><option value="#F5F5F0">Blanca</option><option value="#E98BA6">Rosada</option><option value="#F08A4B">Naranja</option><option value="#6F9BD8">Azul</option><option value="#7BC47F">Verde</option></select></label>
+          <label class="w2">Forma<select id="mShape"><option value="round">Redonda</option><option value="oval">Ovalada</option><option value="capsule">C&aacute;psula</option></select></label>
+          <label class="w2">Unidades en casa<input id="mStock" type="number" min="1" value="30"></label>
+          <datalist id="medNames"><option>Losartán</option><option>Enalapril</option><option>Amlodipino</option><option>Hidroclorotiazida</option><option>Furosemida</option><option>Metoprolol</option><option>Carvedilol</option><option>Metformina</option><option>Glibenclamida</option><option>Insulina glargina</option><option>Atorvastatina</option><option>Lovastatina</option><option>Rosuvastatina</option><option>Ácido acetilsalicílico (Aspirina)</option><option>Clopidogrel</option><option>Warfarina</option><option>Levotiroxina</option><option>Omeprazol</option><option>Esomeprazol</option><option>Acetaminofén</option><option>Calcio + vitamina D</option><option>Alendronato</option><option>Donepezilo</option><option>Levodopa / carbidopa</option><option>Salbutamol (inhalador)</option><option>Tamsulosina</option></datalist><datalist id="doseList"><option>5 mg</option><option>10 mg</option><option>20 mg</option><option>25 mg</option><option>40 mg</option><option>50 mg</option><option>100 mg</option><option>500 mg</option><option>850 mg</option><option>1 g</option><option>10 UI</option><option>20 UI</option></datalist>
+          <div class="w6"><button class="btn primary" type="button" id="bAddMed">Agregar a la lista</button></div>
+        </div>
+        <ul class="medlist" id="wMeds"></ul>
+        <p class="emptymeds" id="wEmpty">A&uacute;n no hay medicamentos. Llene los campos y pulse &laquo;Agregar a la lista&raquo;.</p>
+      </div>
+
+      <div data-step="4" hidden>
+        <h2>Confirmar registro</h2>
+        <p class="lead">Revise los datos. Al empezar, el reloj se pone 5 minutos antes de la primera toma.</p>
+        <div class="summary" id="wSummary"></div>
+      </div>
+
+      <p class="err" id="wErr" role="alert" hidden></p>
+      <div class="wnav">
+        <button class="btn" type="button" id="wBack">Volver</button>
+        <button class="btn primary" type="submit" id="wNext">Siguiente</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ===== Simulación ===== -->
+  <div id="app" hidden>
+  <div class="sim" role="region" aria-label="Controles de simulaci&oacute;n">
+    <div class="clock"><div><div class="lbl">Hora simulada</div><b class="num" id="clock">07:55</b></div><span id="dateLbl"></span></div>
+    <div class="btns">
+      <button class="btn primary" id="bPlay" type="button">Reproducir</button>
+      <button class="btn" id="b5" type="button">+5 min</button>
+      <button class="btn" id="b15" type="button">+15 min</button>
+      <button class="btn" id="bNext" type="button">Ir a la pr&oacute;xima toma</button>
+      <button class="btn" id="bSound" type="button" aria-pressed="true">Voz: encendida</button>
+      <button class="btn" id="bReset" type="button">Reiniciar d&iacute;a</button>
+      <button class="btn" id="bNewReg" type="button">Nuevo registro</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="carmen" type="button" id="tabSenior">Celular del adulto mayor</button>
+    <button role="tab" aria-selected="false" data-tab="andres" type="button" id="tabCare">Panel del cuidador</button>
+  </div>
+
+  <div class="views" id="views" data-tab="carmen">
+    <section id="carmenCol" aria-label="Interfaz del adulto mayor">
+      <div class="col-head"><h2 id="hSenior">Adulto mayor</h2><small>Una sola pantalla, un solo bot&oacute;n</small></div>
+      <div class="phone"><div class="screen" id="phoneScreen">
+        <div class="bar num"><span id="phTime">7:55</span><span>MediCuida</span></div>
+        <div class="body" id="carmen"></div>
+      </div></div>
+      <p class="voice-note" id="voiceNote"></p>
+    </section>
+
+    <section id="panelCol" aria-label="Panel del cuidador">
+      <div class="col-head"><h2 id="hCare">Cuidador</h2><small>Solo le avisamos cuando algo falla</small></div>
+      <p class="profile" id="profileLine"></p>
+      <div class="panel">
+        <div class="status ok" id="status"></div>
+        <div class="grid2">
+          <div class="card"><h3>Tomas de hoy <small id="adh"></small></h3><ul class="tl" id="tl"></ul></div>
+          <div class="card"><h3>Alertas <small>gesti&oacute;n por excepci&oacute;n</small></h3><ul class="feed" id="feed"></ul></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h3>Inventario en casa <small>aviso para reclamar en la EPS</small></h3><div class="inv" id="inv"></div></div>
+          <div class="card"><h3>Resumen diario por WhatsApp <small>se env&iacute;a a las 9:30 p. m.</small></h3>
+            <div class="wa" id="wa"></div>
+            <div class="row"><a class="btn wa-btn" id="waSummary" target="_blank" rel="noopener" href="https://wa.me/"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2l-.4-.3z"/></svg> Enviar por WhatsApp</a><button class="btn" id="bCopy" type="button">Copiar texto</button><button class="btn" id="bReport" type="button">Ver reporte para el m&eacute;dico</button><span class="hint" id="copyMsg"></span></div>
+          </div>
+        </div>
+        <div class="card"><h3>Pantalla del adulto mayor <small>los cambios se ven en su celular</small></h3><div class="vbox" id="pDispBox"></div></div>
+        <div class="card"><h3>WhatsApp automático <small>sin tocar ningún botón</small></h3><div class="vbox" id="pAutoBox"></div></div>
+        <div class="card"><h3>Voz del recordatorio <small>la escucha el adulto mayor</small></h3><div class="vbox" id="pVoiceBox"></div></div>
+        <div class="card"><h3>Agregar medicamento <small>tambi&eacute;n desde el panel</small></h3>
+          <form class="cfg" id="cfg">
+            <label class="w2">Medicamento<input id="fName" list="medNames" required placeholder="Ej. Enalapril"></label>
+            <label>Dosis<input id="fDose" required placeholder="10 mg"></label>
+            <label>Hora<input id="fTime" type="time" required value="18:00"></label>
+            <label>Color<select id="fColor">
+              <option value="#F2C14E">Amarilla</option><option value="#F5F5F0">Blanca</option><option value="#E98BA6">Rosada</option><option value="#F08A4B">Naranja</option><option value="#6F9BD8">Azul</option><option value="#7BC47F">Verde</option></select></label>
+            <label>Forma<select id="fShape"><option value="round">Redonda</option><option value="oval">Ovalada</option><option value="capsule">C&aacute;psula</option></select></label>
+            <label class="w2">Unidades en casa<input id="fStock" type="number" min="1" value="30" required></label>
+            <div class="w6 fl" style="font-size:12.5px;color:var(--muted)">Foto (opcional)<div class="photo-row"><span class="photo-prev" id="fPhotoPrev" aria-hidden="true"></span><label class="btn" for="fPhoto" style="cursor:pointer">Tomar o subir foto</label><input id="fPhoto" type="file" accept="image/*" capture="environment" class="vh"></div></div>
+            <div class="w6 row" style="margin-top:0"><button class="btn primary" type="submit">Agregar medicamento</button><span class="hint" id="cfgMsg"></span></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">Reporte de adherencia</h2>
+    <p class="sub" id="mSub"></p>
+    <div class="bars num" id="bars"></div>
+    <div class="blabels" id="blabels"></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Medicamento</th><th>Dosis</th><th>Horario</th><th>Unidades</th></tr></thead><tbody id="mTbl"></tbody></table></div>
+    <div class="row"><button class="btn primary" id="bClose" type="button">Cerrar</button></div>
+  </div>
+</div>
+
+<script>
+const DEMO={
+  profile:{sName:'Carmen Rodríguez',sCall:'Doña Carmen',sAge:'74',sSex:'Mujer',sLives:'Vive sola o solo',sCountry:'Colombia',sDept:'Cundinamarca',sCity:'Facatativá',sEps:'Nueva EPS',cCode:'57',sCond:'Hipertensión, diabetes tipo 2 y colesterol alto',cName:'Andrés',cRel:'Hijo',cPhone:'300 123 4567',cCalls:'Mamá',voiceMode:'tts',voiceName:'',voiceRate:0.92,recording:'',voice:'Mamá, son las {hora}. Es hora de tus pastillas. Cuando te las tomes, oprime el botón verde. Te quiere Andrés.'},
+  meds:[
+   {id:'los',name:'Losartán',dose:'50 mg',form:'tableta',qty:1,note:'',times:['08:00'],color:'#F2C14E',shape:'round',stock:24,full:30},
+   {id:'met',name:'Metformina',dose:'850 mg',form:'tableta',qty:1,note:'Con comida',times:['08:00','20:00'],color:'#F5F5F0',shape:'oval',stock:8,full:60},
+   {id:'aml',name:'Amlodipino',dose:'5 mg',form:'tableta',qty:1,note:'',times:['13:00'],color:'#E98BA6',shape:'round',stock:27,full:30},
+   {id:'asp',name:'Aspirina',dose:'100 mg',form:'tableta',qty:1,note:'Con comida',times:['13:00'],color:'#F08A4B',shape:'round',stock:18,full:30},
+   {id:'ato',name:'Atorvastatina',dose:'20 mg',form:'c\u00e1psula',qty:1,note:'Antes de dormir',times:['21:00'],color:'#6F9BD8',shape:'capsule',stock:26,full:30}],
+  history:[100,100,83,100,67,100]
+};
+const CO={"Amazonas":["El Encanto","La Chorrera","La Pedrera","La Victoria","Leticia","Mirití – Paraná","Puerto Alegría","Puerto Arica","Puerto Nariño","Puerto Santander","Tarapacá"],"Antioquia":["Abejorral","Abriaquí","Alejandría","Amagá","Amalfi","Andes","Angelópolis","Angostura","Anorí","Anzá","Apartadó","Arboletes","Argelia","Armenia","Barbosa","Bello","Belmira","Betania","Betulia","Briceño","Buriticá","Cáceres","Caicedo","Caldas","Campamento","Cañasgordas","Caracolí","Caramanta","Carepa","Carolina","Caucasia","Chigorodó","Cisneros","Ciudad Bolívar","Cocorná","Concepción","Concordia","Copacabana","Dabeiba","Donmatías","Ebéjico","El Bagre","El Carmen de Viboral","El Santuario","Entrerríos","Envigado","Fredonia","Frontino","Giraldo","Girardota","Gómez Plata","Granada","Guadalupe","Guarne","Guatapé","Heliconia","Hispania","Itagüí","Ituango","Jardín","Jericó","La Ceja","La Estrella","La Pintada","La Unión","Liborina","Maceo","Marinilla","Medellín","Montebello","Murindó","Mutatá","Nariño","Nechí","Necoclí","Olaya","Peñol","Peque","Pueblorrico","Puerto Berrío","Puerto Nare","Puerto Triunfo","Remedios","Retiro","Rionegro","Sabanalarga","Sabaneta","Salgar","San Andrés de Cuerquía","San Carlos","San Francisco","San Jerónimo","San José de la Montaña","San Juan de Urabá","San Luis","San Pedro de los Milagros","San Pedro de Urabá","San Rafael","San Roque","San Vicente Ferrer","Santa Bárbara","Santa Fé de Antioquia","Santa Rosa de Osos","Santo Domingo","Segovia","Sonsón","Sopetrán","Támesis","Tarazá","Tarso","Titiribí","Toledo","Turbo","Uramita","Urrao","Valdivia","Valparaíso","Vegachí","Venecia","Vigía del Fuerte","Yalí","Yarumal","Yolombó","Yondó","Zaragoza"],"Arauca":["Arauca","Arauquita","Cravo Norte","Fortul","Puerto Rondón","Saravena","Tame"],"Atlántico":["Baranoa","Barranquilla","Campo de la Cruz","Candelaria","Galapa","Juan de Acosta","Luruaco","Malambo","Manatí","Palmar de Varela","Piojó","Polonuevo","Ponedera","Puerto Colombia","Repelón","Sabanagrande","Sabanalarga","Santa Lucía","Santo Tomás","Soledad","Suan","Tubará","Usiacurí"],"Bogotá D.C.":["Bogotá D.C."],"Bolívar":["Achí","Altos del Rosario","Arenal","Arjona","Arroyohondo","Barranco de Loba","Calamar","Cantagallo","Cartagena de Indias","Cicuco","Clemencia","Córdoba","El Carmen de Bolívar","El Guamo","El Peñón","Hatillo de Loba","Magangué","Mahates","Margarita","María la Baja","Montecristo","Morales","Norosí","Pinillos","Regidor","Río Viejo","San Cristóbal","San Estanislao","San Fernando","San Jacinto","San Jacinto del Cauca","San Juan Nepomuceno","San Martín de Loba","San Pablo","Santa Catalina","Santa Cruz de Mompox","Santa Rosa","Santa Rosa del Sur","Simití","Soplaviento","Talaigua Nuevo","Tiquisio","Turbaco","Turbaná","Villanueva","Zambrano"],"Boyacá":["Almeida","Aquitania","Arcabuco","Belén","Berbeo","Betéitiva","Boavita","Boyacá","Briceño","Buenavista","Busbanzá","Caldas","Campohermoso","Cerinza","Chinavita","Chiquinquirá","Chíquiza","Chiscas","Chita","Chitaraque","Chivatá","Chivor","Ciénega","Cómbita","Coper","Corrales","Covarachía","Cubará","Cucaita","Cuítiva","Duitama","El Cocuy","El Espino","Firavitoba","Floresta","Gachantivá","Gámeza","Garagoa","Guacamayas","Guateque","Guayatá","Güicán de la Sierra","Iza","Jenesano","Jericó","La Capilla","La Uvita","La Victoria","Labranzagrande","Macanal","Maripí","Miraflores","Mongua","Monguí","Moniquirá","Motavita","Muzo","Nobsa","Nuevo Colón","Oicatá","Otanche","Pachavita","Páez","Paipa","Pajarito","Panqueba","Pauna","Paya","Paz de Río","Pesca","Pisba","Puerto Boyacá","Quípama","Ramiriquí","Ráquira","Rondón","Saboyá","Sáchica","Samacá","San Eduardo","San José de Pare","San Luis de Gaceno","San Mateo","San Miguel de Sema","San Pablo de Borbur","Santa María","Santa Rosa de Viterbo","Santa Sofía","Santana","Sativanorte","Sativasur","Siachoque","Soatá","Socha","Socotá","Sogamoso","Somondoco","Sora","Soracá","Sotaquirá","Susacón","Sutamarchán","Sutatenza","Tasco","Tenza","Tibaná","Tibasosa","Tinjacá","Tipacoque","Toca","Togüí","Tópaga","Tota","Tunja","Tununguá","Turmequé","Tuta","Tutazá","Úmbita","Ventaquemada","Villa de Leyva","Viracachá","Zetaquira"],"Caldas":["Aguadas","Anserma","Aranzazu","Belalcázar","Chinchiná","Filadelfia","La Dorada","La Merced","Manizales","Manzanares","Marmato","Marquetalia","Marulanda","Neira","Norcasia","Pácora","Palestina","Pensilvania","Riosucio","Risaralda","Salamina","Samaná","San José","Supía","Victoria","Villamaría","Viterbo"],"Caquetá":["Albania","Belén de los Andaquíes","Cartagena del Chairá","Curillo","El Doncello","El Paujíl","Florencia","La Montañita","Milán","Morelia","Puerto Rico","San José del Fragua","San Vicente del Caguán","Solano","Solita","Valparaíso"],"Casanare":["Aguazul","Chámeza","Hato Corozal","La Salina","Maní","Monterrey","Nunchía","Orocué","Paz de Ariporo","Pore","Recetor","Sabanalarga","Sácama","San Luis de Palenque","Támara","Tauramena","Trinidad","Villanueva","Yopal"],"Cauca":["Almaguer","Argelia","Balboa","Bolívar","Buenos Aires","Cajibío","Caldono","Caloto","Corinto","El Tambo","Florencia","Guachené","Guapi","Inzá","Jambaló","La Sierra","La Vega","López de Micay","Mercaderes","Miranda","Morales","Padilla","Páez","Patía","Piamonte","Piendamó – Tunía","Popayán","Puerto Tejada","Puracé","Rosas","San Sebastián","Santa Rosa","Santander de Quilichao","Silvia","Sotará Paispamba","Suárez","Sucre","Timbío","Timbiquí","Toribío","Totoró","Villa Rica"],"Cesar":["Aguachica","Agustín Codazzi","Astrea","Becerril","Bosconia","Chimichagua","Chiriguaná","Curumaní","El Copey","El Paso","Gamarra","González","La Gloria","La Jagua de Ibirico","La Paz","Manaure Balcón del Cesar","Pailitas","Pelaya","Pueblo Bello","Río de Oro","San Alberto","San Diego","San Martín","Tamalameque","Valledupar"],"Chocó":["Acandí","Alto Baudó","Atrato","Bagadó","Bahía Solano","Bajo Baudó","Bojayá","Carmen del Darién","Cértegui","Condoto","El Cantón del San Pablo","El Carmen de Atrato","El Litoral del San Juan","Istmina","Juradó","Lloró","Medio Atrato","Medio Baudó","Medio San Juan","Nóvita","Nuquí","Quibdó","Río Iró","Río Quito","Riosucio","San José del Palmar","Sipí","Tadó","Unguía","Unión Panamericana"],"Córdoba":["Ayapel","Buenavista","Canalete","Cereté","Chimá","Chinú","Ciénaga de Oro","Cotorra","La Apartada","Lorica","Los Córdobas","Momil","Montelíbano","Montería","Moñitos","Planeta Rica","Pueblo Nuevo","Puerto Escondido","Puerto Libertador","Purísima de la Concepción","Sahagún","San Andrés de Sotavento","San Antero","San Bernardo del Viento","San Carlos","San José de Uré","San Pelayo","Tierralta","Tuchín","Valencia"],"Cundinamarca":["Agua de Dios","Albán","Anapoima","Anolaima","Apulo","Arbeláez","Beltrán","Bituima","Bojacá","Cabrera","Cachipay","Cajicá","Caparrapí","Cáqueza","Carmen de Carupa","Chaguaní","Chía","Chipaque","Choachí","Chocontá","Cogua","Cota","Cucunubá","El Colegio","El Peñón","El Rosal","Facatativá","Fómeque","Fosca","Funza","Fúquene","Fusagasugá","Gachalá","Gachancipá","Gachetá","Gama","Girardot","Granada","Guachetá","Guaduas","Guasca","Guataquí","Guatavita","Guayabal de Síquima","Guayabetal","Gutiérrez","Jerusalén","Junín","La Calera","La Mesa","La Palma","La Peña","La Vega","Lenguazaque","Machetá","Madrid","Manta","Medina","Mosquera","Nariño","Nemocón","Nilo","Nimaima","Nocaima","Pacho","Paime","Pandi","Paratebueno","Pasca","Puerto Salgar","Pulí","Quebradanegra","Quetame","Quipile","Ricaurte","San Antonio del Tequendama","San Bernardo","San Cayetano","San Francisco","San Juan de Rioseco","Sasaima","Sesquilé","Sibaté","Silvania","Simijaca","Soacha","Sopó","Subachoque","Suesca","Supatá","Susa","Sutatausa","Tabio","Tausa","Tena","Tenjo","Tibacuy","Tibirita","Tocaima","Tocancipá","Topaipí","Ubalá","Ubaque","Une","Útica","Venecia","Vergara","Vianí","Villa de San Diego de Ubaté","Villagómez","Villapinzón","Villeta","Viotá","Yacopí","Zipacón","Zipaquirá"],"Guainía":["Barrancominas","Cacahual","Inírida","La Guadalupe","Morichal","Pana Pana","Puerto Colombia","San Felipe"],"Guaviare":["Calamar","El Retorno","Miraflores","San José del Guaviare"],"Huila":["Acevedo","Agrado","Aipe","Algeciras","Altamira","Baraya","Campoalegre","Colombia","Elías","Garzón","Gigante","Guadalupe","Hobo","Íquira","Isnos","La Argentina","La Plata","Nátaga","Neiva","Oporapa","Paicol","Palermo","Palestina","Pital","Pitalito","Rivera","Saladoblanco","San Agustín","Santa María","Suaza","Tarqui","Tello","Teruel","Tesalia","Timaná","Villavieja","Yaguará"],"La Guajira":["Albania","Barrancas","Dibulla","Distracción","El Molino","Fonseca","Hatonuevo","La Jagua del Pilar","Maicao","Manaure","Riohacha","San Juan del Cesar","Uribia","Urumita","Villanueva"],"Magdalena":["Algarrobo","Aracataca","Ariguaní","Cerro de San Antonio","Chivolo","Ciénaga","Concordia","El Banco","El Piñón","El Retén","Fundación","Guamal","Nueva Granada","Pedraza","Pijiño del Carmen","Pivijay","Plato","Puebloviejo","Remolino","Sabanas de San Ángel","Salamina","San Sebastián de Buenavista","San Zenón","Santa Ana","Santa Bárbara de Pinto","Santa Marta","Sitionuevo","Tenerife","Zapayán","Zona Bananera"],"Meta":["Acacías","Barranca de Upía","Cabuyaro","Castilla la Nueva","Cubarral","Cumaral","El Calvario","El Castillo","El Dorado","Fuente de Oro","Granada","Guamal","La Macarena","Lejanías","Mapiripán","Mesetas","Puerto Concordia","Puerto Gaitán","Puerto Lleras","Puerto López","Puerto Rico","Restrepo","San Carlos de Guaroa","San Juan de Arama","San Juanito","San Martín","Uribe","Villavicencio","Vistahermosa"],"Nariño":["Albán","Aldana","Ancuya","Arboleda","Barbacoas","Belén","Buesaco","Chachagüí","Colón","Consacá","Contadero","Córdoba","Cuaspud Carlosama","Cumbal","Cumbitara","El Charco","El Peñol","El Rosario","El Tablón de Gómez","El Tambo","Francisco Pizarro","Funes","Guachucal","Guaitarilla","Gualmatán","Iles","Imués","Ipiales","La Cruz","La Florida","La Llanada","La Tola","La Unión","Leiva","Linares","Los Andes","Magüí","Mallama","Mosquera","Nariño","Olaya Herrera","Ospina","Pasto","Policarpa","Potosí","Providencia","Puerres","Pupiales","Ricaurte","Roberto Payán","Samaniego","San Andrés de Tumaco","San Bernardo","San Lorenzo","San Pablo","San Pedro de Cartago","Sandoná","Santa Bárbara","Santacruz","Sapuyes","Taminango","Tangua","Túquerres","Yacuanquer"],"Norte de Santander":["Ábrego","Arboledas","Bochalema","Bucarasica","Cáchira","Cácota","Chinácota","Chitagá","Convención","Cucutilla","Durania","El Carmen","El Tarra","El Zulia","Gramalote","Hacarí","Herrán","La Esperanza","La Playa","Labateca","Los Patios","Lourdes","Mutiscua","Ocaña","Pamplona","Pamplonita","Puerto Santander","Ragonvalia","Salazar","San Calixto","San Cayetano","San José de Cúcuta","Santiago","Sardinata","Silos","Teorama","Tibú","Toledo","Villa Caro","Villa del Rosario"],"Putumayo":["Colón","Mocoa","Orito","Puerto Asís","Puerto Caicedo","Puerto Guzmán","Puerto Leguízamo","San Francisco","San Miguel","Santiago","Sibundoy","Valle del Guamuez","Villagarzón"],"Quindío":["Armenia","Buenavista","Calarcá","Circasia","Córdoba","Filandia","Génova","La Tebaida","Montenegro","Pijao","Quimbaya","Salento"],"Risaralda":["Apía","Balboa","Belén de Umbría","Dosquebradas","Guática","La Celia","La Virginia","Marsella","Mistrató","Pereira","Pueblo Rico","Quinchía","Santa Rosa de Cabal","Santuario"],"San Andrés, Providencia y Santa Catalina":["Providencia","San Andrés"],"Santander":["Aguada","Albania","Aratoca","Barbosa","Barichara","Barrancabermeja","Betulia","Bolívar","Bucaramanga","Cabrera","California","Capitanejo","Carcasí","Cepitá","Cerrito","Charalá","Charta","Chima","Chipatá","Cimitarra","Concepción","Confines","Contratación","Coromoro","Curití","El Carmen de Chucuri","El Guacamayo","El Peñón","El Playón","Encino","Enciso","Florián","Floridablanca","Galán","Gámbita","Girón","Guaca","Guadalupe","Guapotá","Guavatá","Güepsa","Hato","Jesús María","Jordán","La Belleza","La Paz","Landázuri","Lebrija","Los Santos","Macaravita","Málaga","Matanza","Mogotes","Molagavita","Ocamonte","Oiba","Onzaga","Palmar","Palmas del Socorro","Páramo","Piedecuesta","Pinchote","Puente Nacional","Puerto Parra","Puerto Wilches","Rionegro","Sabana de Torres","San Andrés","San Benito","San Gil","San Joaquín","San José de Miranda","San Miguel","San Vicente de Chucurí","Santa Bárbara","Santa Helena del Opón","Simacota","Socorro","Suaita","Sucre","Suratá","Tona","Valle de San José","Vélez","Vetas","Villanueva","Zapatoca"],"Sucre":["Buenavista","Caimito","Chalán","Colosó","Corozal","Coveñas","El Roble","Galeras","Guaranda","La Unión","Los Palmitos","Majagual","Morroa","Ovejas","Palmito","Sampués","San Benito Abad","San José de Toluviejo","San Juan de Betulia","San Luis de Sincé","San Marcos","San Onofre","San Pedro","Santiago de Tolú","Sincelejo","Sucre"],"Tolima":["Alpujarra","Alvarado","Ambalema","Anzoátegui","Armero","Ataco","Cajamarca","Carmen de Apicalá","Casabianca","Chaparral","Coello","Coyaima","Cunday","Dolores","Espinal","Falan","Flandes","Fresno","Guamo","Herveo","Honda","Ibagué","Icononzo","Lérida","Líbano","Melgar","Murillo","Natagaima","Ortega","Palocabildo","Piedras","Planadas","Prado","Purificación","Rioblanco","Roncesvalles","Rovira","Saldaña","San Antonio","San Luis","San Sebastián de Mariquita","Santa Isabel","Suárez","Valle de San Juan","Venadillo","Villahermosa","Villarrica"],"Valle del Cauca":["Alcalá","Andalucía","Ansermanuevo","Argelia","Bolívar","Buenaventura","Bugalagrande","Caicedonia","Cali","Calima","Candelaria","Cartago","Dagua","El Águila","El Cairo","El Cerrito","El Dovio","Florida","Ginebra","Guacarí","Guadalajara de Buga","Jampionamedí","La Cumbre","La Unión","La Victoria","Obando","Palmira","Pradera","Restrepo","Riofrío","Roldanillo","San Pedro","Sevilla","Toro","Trujillo","Tuluá","Ulloa","Versalles","Vijes","Yotoco","Yumbo","Zarzal"],"Vaupés":["Carurú","Mitú","Pacoa","Papunahua","Taraira","Yavaraté"],"Vichada":["Cumaribo","La Primavera","Puerto Carreño","Santa Rosalía"]};
+const COLOR_NAMES={'#F2C14E':'amarilla','#F5F5F0':'blanca','#E98BA6':'rosada','#F08A4B':'naranja','#6F9BD8':'azul','#7BC47F':'verde'};
+const SHAPE_NAMES={round:'redonda',oval:'ovalada',capsule:'cápsula'};
+const DAYS=['dom','lun','mar','mié','jue','vie','sáb'];
+const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const LS='medicuida-registro-v2';
+const TODAY=new Date(); TODAY.setHours(0,0,0,0);
+let S=null, REG=null, timer=null, sound=true;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+const fmt=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const fmt12=m=>{let h=Math.floor(m/60),mm=String(m%60).padStart(2,'0');const ap=h<12?'a. m.':'p. m.';h=h%12||12;return h+':'+mm+' '+ap};
+const fdate=d=>d.getDate()+' de '+MONTHS[d.getMonth()];
+const clone=o=>JSON.parse(JSON.stringify(o));
+const P=()=>REG.profile;
+const first=n=>String(n||'').trim().split(/\s+/)[0]||'';
+const care=()=>P().cName||'el cuidador';
+const senior=()=>P().sCall||first(P().sName)||'el adulto mayor';
+const eps=()=>P().sEps?('la '+P().sEps).replace(/^la (la|el) /i,'la '):'la EPS';
+
+/* ---------- Almacenamiento local (solo en este navegador) ---------- */
+function save(){try{localStorage.setItem(LS,JSON.stringify(REG))}catch(e){}}
+function load(){try{const r=JSON.parse(localStorage.getItem(LS)||'null');return r&&r.profile&&Array.isArray(r.meds)?r:null}catch(e){return null}}
+
+/* ---------- Bienvenida ---------- */
+function showWelcome(){
+  stopPlay(); $('app').hidden=true; $('setup').hidden=false; $('welcome').hidden=false; $('wizard').hidden=true;
+  $('tagEx').textContent='Prototipo para celular. Puede registrar una familia desde cero o ver el caso de ejemplo de Doña Carmen.';
+  const saved=load();
+  $('bResume').hidden=!saved;
+  if(saved)$('resumeTxt').textContent=`${saved.profile.sName||'Adulto mayor'} · ${saved.meds.length} medicamento${saved.meds.length===1?'':'s'} · cuidador ${saved.profile.cName||''}`;
+}
+$('bStartDemo').onclick=()=>{REG=clone(DEMO);REG.demo=true;startApp()};
+$('bResume').onclick=()=>{REG=load();if(REG)startApp()};
+$('bStartNew').onclick=()=>openWizard();
+
+/* ---------- Asistente de registro ---------- */
+let step=1, W=null;
+function openWizard(){
+  W={profile:{sName:'',sCall:'',sAge:'',sSex:'',sLives:'',sCountry:'Colombia',sDept:'',sCity:'',sEps:'',sCond:'',cCode:'57',ui:{fs:'1',skin:'claro',btn:'verde'},waAuto:false,waKey:'',waSum:false,cName:'',cRel:'Hijo',cPhone:'',cCalls:'',voice:'',voiceMode:'tts',voiceName:'',voiceRate:0.92,recording:''},meds:[],history:[]};
+  ['sName','sCall','sAge','sRegion','sCityTxt','sEpsTxt','sCondOther','cName','cPhone','cCalls','cVoice','mName','mDose'].forEach(id=>{$(id).value='';$(id).removeAttribute('aria-invalid')});
+  ['sSex','sLives','sEpsSel','cCode'].forEach(id=>$(id).selectedIndex=0); $('sCountry').value='Colombia'; fillDepts(); setCountry(); setEps();
+  document.querySelectorAll('#sCondBox input').forEach(c=>c.checked=false); resetMedForm();
+  $('cRel').value='Hijo'; $('cVoice').dataset.auto='1'; mountDisplay($('wDispBox'),()=>W.profile,false,true); mountVoice($('wVoiceBox'),()=>W.profile,()=>$('cVoice').value||defaultVoice(),false); mountAuto($('wAutoBox'),()=>Object.assign(W.profile,{cPhone:$('cPhone').value.trim(),cName:$('cName').value.trim()}),false); updWaTest();
+  $('welcome').hidden=true; $('wizard').hidden=false; goStep(1);
+}
+function goStep(n){
+  step=n; $('wErr').hidden=true;
+  document.querySelectorAll('[data-step]').forEach(el=>el.hidden=+el.dataset.step!==n);
+  document.querySelectorAll('#steps li').forEach(li=>{const k=+li.dataset.s;li.classList.toggle('on',k===n);li.classList.toggle('past',k<n)});
+  $('wBack').textContent=n===1?'Cancelar':'Volver';
+  $('wNext').textContent=n===4?'Empezar simulación':'Siguiente';
+  if(n===2&&$('cVoice').dataset.auto!=='0')$('cVoice').value=defaultVoice();
+  if(n===3)renderWMeds();
+  if(n===4)renderSummary();
+  const f=document.querySelector(`[data-step="${n}"] input`); if(f)f.focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function defaultVoice(){const c=$('cCalls').value.trim()||$('sCall').value.trim()||first($('sName').value);const n=$('cName').value.trim();
+  return `${c?c+', s':'S'}on las {hora}. Es hora de tus pastillas. Cuando te las tomes, oprime el botón verde.${n?' Te quiere '+n+'.':''}`}
+function fail(msg,id){$('wErr').textContent=msg;$('wErr').hidden=false;if(id){$(id).setAttribute('aria-invalid','true');$(id).focus()}return false}
+function collect(n){
+  const v=id=>$(id).value.trim();
+  if(n===1){
+    if(!v('sName'))return fail('Escriba el nombre del adulto mayor.','sName');
+    const age=v('sAge'); if(age&&(+age<40||+age>115))return fail('Revise la edad.','sAge');
+    const co=$('sCountry').value==='Colombia';
+    const eps=$('sEpsSel').value==='__otra'?v('sEpsTxt'):$('sEpsSel').value;
+    const cond=[...document.querySelectorAll('#sCondBox input:checked')].map(c=>c.value).concat(v('sCondOther')?[v('sCondOther')]:[]).join(', ');
+    Object.assign(W.profile,{sName:v('sName'),sCall:v('sCall')||first(v('sName')),sAge:age,sSex:$('sSex').value,sLives:$('sLives').value,
+      sCountry:$('sCountry').value,sDept:co?$('sDept').value:v('sRegion'),sCity:co?$('sCitySel').value:v('sCityTxt'),sEps:eps,sCond:cond});
+  }
+  if(n===2){
+    if(!v('cName'))return fail('Escriba el nombre del cuidador.','cName');
+    const digits=v('cPhone').replace(/\D/g,''); if(digits&&digits.length<7)return fail('Revise el número de celular.','cPhone');
+    Object.assign(W.profile,{cName:v('cName'),cRel:$('cRel').value,cCode:$('cCode').value,cPhone:v('cPhone'),cCalls:v('cCalls'),voice:v('cVoice')||defaultVoice()});
+  }
+  if(n===3&&!W.meds.length)return fail('Agregue al menos un medicamento a la lista.','mName');
+  return true;
+}
+document.querySelectorAll('.fgrid input').forEach(i=>i.addEventListener('input',()=>i.removeAttribute('aria-invalid')));
+$('cVoice').addEventListener('input',()=>{$('cVoice').dataset.auto='0'});
+['cName','cCalls'].forEach(id=>$(id).addEventListener('input',()=>{if($('cVoice').dataset.auto!=='0')$('cVoice').value=defaultVoice()}));
+['cName','cPhone','sCall'].forEach(id=>$(id).addEventListener('input',updWaTest)); $('cCode').addEventListener('change',updWaTest);
+function updWaTest(){const n=$('cName').value.trim(),c=$('sCall').value.trim()||first($('sName').value);
+  $('wWaTest').href=waLink(($('cCode').value||'57')+$('cPhone').value.replace(/\D/g,''),`Hola${n?' '+n:''}, este es un mensaje de prueba de MediCuida. Por este medio recibir\u00e1s las alertas y el resumen diario de ${c||'tu familiar'}.`)}
+$('wizard').onsubmit=e=>{e.preventDefault();if(!collect(step))return;if(step<4)goStep(step+1);else{REG=W;save();startApp()}};
+$('wBack').onclick=()=>{if(step===1)showWelcome();else goStep(step-1)};
+
+function addTime(val){
+  if($('mTimes').children.length>=4)return;
+  const w=document.createElement('span');w.style.display='inline-flex';w.style.gap='4px';w.style.alignItems='center';
+  w.innerHTML=`<input type="time" value="${val||'20:00'}" aria-label="Horario">`+($('mTimes').children.length?'<button type="button" class="x" aria-label="Quitar horario">×</button>':'');
+  const x=w.querySelector('.x'); if(x)x.onclick=()=>w.remove();
+  $('mTimes').appendChild(w);
+}
+$('bAddTime').onclick=()=>addTime();
+/* ---------- Lugar, EPS, presets y foto ---------- */
+function fillDepts(){$('sDept').innerHTML='<option value="">Seleccione</option>'+Object.keys(CO).map(d=>`<option>${esc(d)}</option>`).join('');fillCities()}
+function fillCities(){const d=$('sDept').value;$('sCitySel').innerHTML=d?'<option value="">Seleccione</option>'+CO[d].map(m=>`<option>${esc(m)}</option>`).join(''):'<option value="">Primero elija el departamento</option>';
+  if(d&&CO[d].length===1)$('sCitySel').selectedIndex=1}
+function setCountry(){const co=$('sCountry').value==='Colombia';$('lDept').hidden=!co;$('lCity').hidden=!co;$('lRegion').hidden=co;$('lCityTxt').hidden=co;$('lEps').querySelector('select').disabled=false;
+  $('lEps').firstChild.textContent=co?'EPS':'Seguro de salud';}
+function setEps(){$('lEpsTxt').hidden=$('sEpsSel').value!=='__otra'}
+$('sDept').onchange=fillCities; $('sCountry').onchange=setCountry; $('sEpsSel').onchange=setEps;
+document.querySelectorAll('#mPresets input').forEach(r=>r.onchange=()=>{$('mTimes').innerHTML='';r.value.split(',').forEach(t=>addTime(t));
+  if(r.value==='21:00')$('mNote').value='Antes de dormir'});
+let mPhotoData='', fPhotoData='';
+function readPhoto(file,cb){
+  if(!file)return; const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>{const max=320,k=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    cb(c.toDataURL('image/jpeg',0.8))};img.onerror=()=>cb('');img.src=fr.result};
+  fr.readAsDataURL(file);
+}
+function showPrev(el,data){el.style.backgroundImage=data?`url(${data})`:'';el.classList.toggle('has',!!data)}
+$('mPhoto').onchange=e=>readPhoto(e.target.files[0],d=>{mPhotoData=d;showPrev($('mPhotoPrev'),d);$('mPhotoDel').hidden=!d;e.target.value=''});
+$('mPhotoDel').onclick=()=>{mPhotoData='';showPrev($('mPhotoPrev'),'');$('mPhotoDel').hidden=true};
+$('fPhoto').onchange=e=>readPhoto(e.target.files[0],d=>{fPhotoData=d;showPrev($('fPhotoPrev'),d);e.target.value=''});
+function resetMedForm(){
+  ['mName','mDose'].forEach(id=>$(id).value='');$('mStock').value=30;$('mQty').value=1;$('mForm').selectedIndex=0;$('mNote').selectedIndex=0;
+  $('mColor').selectedIndex=0;$('mShape').selectedIndex=0;$('mTimes').innerHTML='';addTime('08:00');
+  document.querySelectorAll('#mPresets input').forEach(r=>r.checked=false);mPhotoData='';showPrev($('mPhotoPrev'),'');$('mPhotoDel').hidden=true;
+}
+$('bAddMed').onclick=()=>{
+  $('wErr').hidden=true;
+  const name=$('mName').value.trim(),dose=$('mDose').value.trim(),stock=+$('mStock').value,qty=Math.max(1,+$('mQty').value||1);
+  const times=[...new Set([...$('mTimes').querySelectorAll('input')].map(i=>i.value).filter(Boolean))].sort();
+  if(!name)return fail('Escriba el nombre del medicamento.','mName');
+  if(!dose)return fail('Escriba la dosis.','mDose');
+  if(!times.length)return fail('Indique al menos un horario.');
+  if(!(stock>0))return fail('Indique cuántas unidades hay en casa.','mStock');
+  W.meds.push({id:'m'+Date.now(),name,dose,times,form:$('mForm').value,qty,note:$('mNote').value,photo:mPhotoData,color:$('mColor').value,shape:$('mShape').value,stock,full:Math.max(stock,30)});
+  resetMedForm();$('mName').focus();
+  renderWMeds();
+};
+function renderWMeds(){
+  const ul=$('wMeds'); $('wEmpty').hidden=W.meds.length>0;
+  ul.innerHTML=W.meds.map((m,i)=>`<li>${pill(m,1)}<div><b>${esc(m.name)} \u00b7 ${esc(m.dose)}</b><span>${esc(howMuch(m))} \u00b7 ${m.times.map(t=>fmt12(toMin(t))).join(' \u00b7 ')}${m.note?' \u00b7 '+esc(m.note.toLowerCase()):''} \u00b7 ${m.stock} en casa \u00b7 ${m.photo?'con foto':COLOR_NAMES[m.color]+', '+SHAPE_NAMES[m.shape]}</span></div><button type="button" class="del" data-i="${i}">Quitar</button></li>`).join('');
+  ul.querySelectorAll('.del').forEach(b=>b.onclick=()=>{W.meds.splice(+b.dataset.i,1);renderWMeds()});
+}
+function renderSummary(){
+  const p=W.profile;
+  $('wSummary').innerHTML=`
+   <div><small>Adulto mayor</small><b>${esc(p.sName)}</b><br>${[p.sAge&&p.sAge+' años',p.sSex,p.sLives].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}<br>${esc(place(p))}${p.sEps?' · '+esc(p.sEps):''}<br><span class="hintline">La app le dice: «${esc(p.sCall)}»${p.sCond?' · '+esc(p.sCond):''}</span></div>
+   <div><small>Cuidador</small><b>${esc(p.cName)}</b> · ${esc(p.cRel)}<br>${p.cPhone?'+'+esc(p.cCode||'57')+' '+esc(p.cPhone):'Sin celular registrado'}<br><span class="hintline">Recibe alertas a los 30 min sin confirmar${p.waAuto?(p.waKey?' · WhatsApp automático activado':' · falta la API key para el WhatsApp automático'):''}</span></div>
+   <div style="grid-column:1/-1"><small>Pantalla</small>${(()=>{const u=ui(p);const f=k=>DISP[k].opts.find(o=>o[0]===String(u[k]))[1];return `Letra ${f('fs').toLowerCase()} · fondo ${f('skin').toLowerCase()} · botón ${f('btn').toLowerCase()}`})()}</div>
+   <div style="grid-column:1/-1"><small>Medicamentos (${W.meds.length})</small>${W.meds.map(m=>`${esc(m.name)} ${esc(m.dose)} (${esc(howMuch(m))}) – ${m.times.map(t=>fmt12(toMin(t))).join(', ')}${m.note?' · '+esc(m.note.toLowerCase()):''}`).join('<br>')}</div>
+   <div style="grid-column:1/-1"><small>Mensaje de voz · ${p.voiceMode==='rec'&&p.recording?'grabación del familiar':'voz del celular'+(p.voiceName?' ('+esc(p.voiceName)+')':'')}</small>«${esc(p.voice.replace('{hora}','8'))}»</div>`;
+}
+function place(p){return [p.sCity,p.sDept&&p.sDept!==p.sCity?p.sDept:'',p.sCountry&&p.sCountry!=='Colombia'?p.sCountry:''].filter(Boolean).join(', ')}
+function howMuch(m){const q=+m.qty||1,f=m.form||'tableta';const pl={tableta:'tabletas','cápsula':'cápsulas',sobre:'sobres','inhalación':'inhalaciones'};
+  return q+' '+(q>1&&pl[f]?pl[f]:f)}
+/* ---------- Simulación ---------- */
+function buildSlots(old){
+  const map={};
+  S.meds.forEach(m=>m.times.forEach(t=>{(map[t]=map[t]||[]).push(m.id)}));
+  return Object.keys(map).sort().map(t=>{
+    const prev=(old||[]).find(s=>s.time===t);
+    return Object.assign({time:t,min:toMin(t),status:'pending',takenAt:null,alerted:false,late:false},prev||{},{meds:map[t]});
+  });
+}
+function startApp(){
+  $('setup').hidden=true; $('app').hidden=false; $('modal').hidden=true;
+  const p=P();
+  $('tagEx').textContent=REG.demo?'Datos de ejemplo de los mapas de empatía: Doña Carmen (74 años, Facatativá, 5 medicamentos) y su hijo Andrés. Use la barra para adelantar el reloj.':`Registro de ${p.sName}. Los datos se guardan solo en este navegador. Use la barra para adelantar el reloj.`;
+  $('tabSenior').textContent='Celular de '+senior(); $('tabCare').textContent='Panel de '+care();
+  $('hSenior').textContent=senior(); $('hCare').textContent=`${care()} · ${String(p.cRel||'cuidador').toLowerCase()}`;
+  $('profileLine').textContent=[`Cuida a ${p.sName}`,p.sAge&&p.sAge+' a\u00f1os',p.sLives,place(p),p.sEps,p.sCond].filter(Boolean).join(' \u00b7 ');
+  $('voiceNote').textContent=`La voz del recordatorio est\u00e1 encendida (se puede apagar con el bot\u00f3n \u00abVoz\u00bb). La voz se elige en el panel de ${care()}; en la app Android suena su grabaci\u00f3n.`;
+  mountVoice($('pVoiceBox'),()=>REG.profile,()=>REG.profile.voice||'',true);
+  mountDisplay($('pDispBox'),()=>REG.profile,true,false); mountAuto($('pAutoBox'),()=>REG.profile,true); paint($('phoneScreen'),ui(p));
+  $('dateLbl').textContent=DAYS[TODAY.getDay()]+' '+fdate(TODAY);
+  resetDay();
+}
+function resetDay(){
+  stopPlay();
+  const meds=clone(REG.meds);
+  const firstMin=Math.min(...meds.flatMap(m=>m.times.map(toMin)),8*60);
+  S={now:Math.max(firstMin-5,0),meds,feed:[],flags:{},lastTaken:null};
+  S.slots=buildSlots();
+  checkStock(); update(true);
+}
+function addFeed(kind,text){S.feed.unshift({kind,text,at:S.now})}
+const perDay=m=>m.times.length*(+m.qty||1);
+const daysLeft=m=>Math.floor(m.stock/perDay(m));
+function claimDate(m){const d=new Date(TODAY);d.setDate(d.getDate()+Math.max(daysLeft(m)-2,0));return d}
+function checkStock(){
+  S.meds.forEach(m=>{
+    if(daysLeft(m)<=5&&!S.flags[m.id]){S.flags[m.id]=1;
+      addFeed('stock',`Quedan ${m.stock} ${m.name} (unos ${daysLeft(m)} días). Reclame en ${eps()} antes del ${fdate(claimDate(m))}.`)}
+  });
+}
+function speak(slot){
+  if(!sound)return;
+  playVoice(P(),(P().voice||'').replace('{hora}',fmt12(slot.min).replace(':00','')));
+}
+/* ---------- Voz: elegir, probar y grabar ---------- */
+let curAudio=null;
+function stopVoice(){try{speechSynthesis.cancel()}catch(e){} if(curAudio){curAudio.pause();curAudio=null}}
+function esVoices(){let v=[];try{v=speechSynthesis.getVoices()}catch(e){} const es=v.filter(x=>/^es/i.test(x.lang));return es.length?es:v}
+function playVoice(p,text){
+  stopVoice();
+  if(p.voiceMode==='rec'&&p.recording){try{curAudio=new Audio(p.recording);curAudio.play().catch(()=>{})}catch(e){}return}
+  try{const u=new SpeechSynthesisUtterance(text);const v=esVoices().find(x=>x.name===p.voiceName);
+    if(v){u.voice=v;u.lang=v.lang}else u.lang='es-CO';u.rate=+p.voiceRate||0.92;speechSynthesis.speak(u)}catch(e){}
+}
+const voiceMounts=[];
+function fillVoices(sel,cur){
+  const vs=esVoices();
+  sel.innerHTML='<option value="">Autom\u00e1tica (espa\u00f1ol)</option>'+vs.map(v=>`<option value="${esc(v.name)}">${esc(v.name.replace(/^(Microsoft|Google)\s+/,''))} \u00b7 ${esc(v.lang)}</option>`).join('');
+  sel.value=vs.some(v=>v.name===cur)?cur:'';
+}
+try{speechSynthesis.addEventListener('voiceschanged',()=>voiceMounts.forEach(f=>f()))}catch(e){}
+function mountVoice(box,getP,getText,persist){
+  box.innerHTML=`<div class="vgrid">
+    <label>Tipo de voz<select data-k="mode"><option value="tts">Voz del celular (sint\u00e9tica)</option><option value="rec">Grabaci\u00f3n del familiar</option></select></label>
+    <label data-show="tts">Voz<select data-k="name"></select></label>
+    <label data-show="tts">Velocidad <span data-a="rv"></span><input data-k="rate" type="range" min="0.6" max="1.3" step="0.05"></label>
+    <div class="vrow" data-show="rec"><button type="button" class="btn" data-a="rec">Grabar mi voz</button><span class="hint" data-a="recst"></span></div>
+    <div class="vrow"><button type="button" class="btn" data-a="test">Probar voz</button><span class="hint" data-a="note"></span></div></div>`;
+  const q=k=>box.querySelector(`[data-k="${k}"]`),a=k=>box.querySelector(`[data-a="${k}"]`);
+  const keep=()=>{if(persist&&!REG.demo)save()};
+  function sync(){const p=getP();q('mode').value=p.voiceMode||'tts';q('rate').value=p.voiceRate||0.92;a('rv').textContent='('+(+(p.voiceRate||0.92)).toFixed(2)+'x)';
+    fillVoices(q('name'),p.voiceName);
+    box.querySelectorAll('[data-show]').forEach(el=>el.hidden=el.dataset.show!==q('mode').value);
+    a('recst').textContent=p.recording?'Grabaci\u00f3n lista. Puede grabar de nuevo.':'Grabe un mensaje corto (m\u00e1x. 15 s).';
+    a('note').textContent=q('mode').value==='rec'&&!p.recording?'Sin grabaci\u00f3n se usa la voz del celular.':'';}
+  voiceMounts.push(sync); sync();
+  q('mode').onchange=()=>{getP().voiceMode=q('mode').value;keep();sync()};
+  q('name').onchange=()=>{getP().voiceName=q('name').value;keep()};
+  q('rate').oninput=()=>{getP().voiceRate=+q('rate').value;a('rv').textContent='('+(+q('rate').value).toFixed(2)+'x)';keep()};
+  a('test').onclick=()=>playVoice(getP(),getText().replace('{hora}','8'));
+  let mr=null,chunks=[],t0=0,tmo=null;
+  a('rec').onclick=async()=>{
+    const b=a('rec');
+    if(mr){mr.stop();return}
+    try{
+      if(!navigator.mediaDevices||!window.MediaRecorder)throw new Error('x');
+      const st=await navigator.mediaDevices.getUserMedia({audio:true});
+      mr=new MediaRecorder(st);chunks=[];t0=Date.now();
+      mr.ondataavailable=e=>chunks.push(e.data);
+      mr.onstop=()=>{clearTimeout(tmo);st.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});mr=null;
+        b.textContent='Grabar de nuevo';b.classList.remove('rec-on');
+        const fr=new FileReader();fr.onload=()=>{getP().recording=fr.result;getP().voiceMode='rec';keep();sync();
+          a('recst').textContent=`Grabaci\u00f3n lista (${Math.round((Date.now()-t0)/1000)} s). Pulse \u00abProbar voz\u00bb.`};fr.readAsDataURL(blob)};
+      mr.start();b.textContent='Detener y guardar';b.classList.add('rec-on');a('recst').textContent='Grabando\u2026 hable cerca del micr\u00f3fono.';
+      tmo=setTimeout(()=>{if(mr)mr.stop()},15000);
+    }catch(e){mr=null;a('recst').textContent='Aqu\u00ed no se puede usar el micr\u00f3fono. Abra el archivo HTML en Chrome o use la app Android, donde s\u00ed se graba.'}
+  };
+}
+/* ---------- Pantalla: tamaño de letra, fondo y color del botón ---------- */
+const DISP={
+  fs:{label:'Tama\u00f1o de letra',opts:[['0.9','Normal'],['1','Grande'],['1.15','Muy grande'],['1.3','Extra grande']]},
+  skin:{label:'Fondo',opts:[['claro','Blanco','#FFFFFF'],['crema','Crema','#FFF8EA'],['azul','Azul claro','#EEF5FC'],['oscuro','Oscuro','#111615'],['contraste','Alto contraste','#000000']]},
+  btn:{label:'Color del bot\u00f3n',opts:[['verde','Verde','#1C7A45'],['azul','Azul','#1D5FBF'],['naranja','Naranja','#C9560A'],['morado','Morado','#6B3FB5'],['amarillo','Amarillo','#FFD800']]}
+};
+const ui=p=>Object.assign({fs:'1',skin:'claro',btn:'verde'},p.ui||{});
+function paint(el,u){if(!el)return;el.style.setProperty('--fs',u.fs);el.dataset.skin=u.skin;el.dataset.btn=u.btn}
+let dispN=0;
+function mountDisplay(box,getP,persist,preview){
+  const n=++dispN;
+  box.innerHTML=`<div class="dgrid"><div class="dctl">${Object.entries(DISP).map(([k,d])=>`<fieldset><legend>${d.label}</legend><div class="seg">${d.opts.map(o=>`<label><input type="radio" name="d${n}${k}" value="${o[0]}" data-k="${k}"><span>${o[2]?`<i class="sw" style="background:${o[2]}"></i>`:''}${o[1]}</span></label>`).join('')}</div></fieldset>`).join('')}</div>
+    ${preview?`<div class="screen dprev" aria-label="Vista previa"><div class="hello">Buen d\u00eda</div><div class="pill-row"><span class="pill" aria-hidden="true"><i class="round" style="background:#F2C14E"></i></span><div><b>Losart\u00e1n</b><span>50 mg \u00b7 1 tableta</span></div></div><button type="button" class="take" tabindex="-1">Ya me la tom\u00e9</button></div>`:'<p class="hintline" style="margin:0">Pruebe las opciones y mire el celular de la izquierda.</p>'}</div>`;
+  const u=ui(getP());
+  box.querySelectorAll('input[type=radio]').forEach(r=>{r.checked=String(u[r.dataset.k])===r.value;
+    r.onchange=()=>{const p=getP();p.ui=Object.assign(ui(p),{[r.dataset.k]:r.value});
+      paint(box.querySelector('.dprev'),p.ui); if(persist){paint($('phoneScreen'),p.ui);if(!REG.demo)save()}}});
+  paint(box.querySelector('.dprev'),u);
+}
+function waDigits(phone){let d=String(phone||'').replace(/\D/g,'');if(d.length===10&&d[0]==='3')d='57'+d;return d}
+function fullPhone(p){const d=String(p.cPhone||'').replace(/\D/g,'');if(!d)return '';const c=p.cCode||'57';return d.startsWith(c)&&d.length>10?d:c+d}
+function waLink(phone,text){const d=waDigits(phone);return 'https://wa.me/'+(d.length>=8?d:'')+'?text='+encodeURIComponent(text)}
+/* ---------- WhatsApp automático (CallMeBot, solo para la demostración) ---------- */
+async function autoSend(p,text){
+  const d=waDigits(fullPhone(p)); if(!p.waKey||d.length<8)return 'nodata';
+  const url='https://api.callmebot.com/whatsapp.php?phone='+d+'&text='+encodeURIComponent(text)+'&apikey='+encodeURIComponent(p.waKey);
+  try{await fetch(url,{mode:'no-cors'});return 'ok'}catch(e){try{new Image().src=url}catch(_){}return 'blocked'}
+}
+const AUTO_MSG={ok:'Enviado. Revise el WhatsApp del cuidador.',blocked:'Este enlace no permite envíos automáticos. Abra el archivo MediCuida_prototipo.html en el navegador.',nodata:'Falta el celular del cuidador o la API key.'};
+function mountAuto(box,getP,persist){
+  box.innerHTML=`<label class="chk"><input type="checkbox" data-k="on"><span>Enviar las alertas por WhatsApp automáticamente</span></label>
+   <div class="auto-body" data-show>
+    <ol><li>En el celular del cuidador, guarde el contacto del bot de CallMeBot (el número está en su página).</li>
+    <li>Envíele por WhatsApp: <code>I allow callmebot to send me messages</code></li>
+    <li>Copie aquí la API key que le llega en la respuesta.</li></ol>
+    <a class="lnk" href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener">Ver instrucciones de CallMeBot</a>
+    <label class="key">API key<input data-k="key" inputmode="numeric" autocomplete="off" placeholder="Ej. 123456"></label>
+    <label class="chk sm"><input type="checkbox" data-k="sum"><span>Enviar también el resumen diario a las 9:30 p. m.</span></label>
+    <div class="vrow"><button type="button" class="btn" data-a="test">Probar envío automático</button><span class="hint" data-a="st"></span></div>
+    <p class="hintline" style="margin:0">Servicio gratuito de uso personal, solo para la demostración. El mensaje llega desde el número de CallMeBot. En el producto real se usa WhatsApp Business API.</p>
+   </div>`;
+  const q=k=>box.querySelector(`[data-k="${k}"]`),st=box.querySelector('[data-a="st"]');
+  const keep=()=>{if(persist&&!REG.demo)save()};
+  const p0=getP(); q('on').checked=!!p0.waAuto; q('key').value=p0.waKey||''; q('sum').checked=!!p0.waSum;
+  const vis=()=>{box.querySelector('[data-show]').hidden=!q('on').checked};vis();
+  q('on').onchange=()=>{getP().waAuto=q('on').checked;vis();keep()};
+  q('key').oninput=()=>{getP().waKey=q('key').value.trim();keep()};
+  q('sum').onchange=()=>{getP().waSum=q('sum').checked;keep()};
+  box.querySelector('[data-a="test"]').onclick=async()=>{const p=getP();st.className='hint';st.textContent='Enviando…';
+    const r=await autoSend(p,`MediCuida ✅ Prueba de envío automático. Desde ahora recibirás aquí las alertas de ${p.sCall||first(p.sName)||'tu familiar'}.`);
+    st.className=r==='ok'?'st-ok':'st-bad';st.textContent=AUTO_MSG[r]};
+}
+function update(silent){
+  S.slots.forEach(s=>{
+    if(s.status==='taken')return;
+    let target='pending';
+    if(S.now>=s.min+30)target='missed';else if(S.now>=s.min+15)target='retry';else if(S.now>=s.min)target='due';
+    if(target!==s.status){
+      if(!silent&&(target==='due'||target==='retry'))speak(s);
+      if(target==='missed'&&!s.alerted){s.alerted=true;
+        const base=`${senior()} no ha confirmado las pastillas de las ${fmt12(s.min)}: pasaron 30 minutos y un segundo recordatorio.`;
+        if(P().waAuto){const at=S.now;autoSend(P(),`MediCuida \u26a0\ufe0f ${base} Por favor comun\u00edquese con ${senior()}.`).then(r=>{
+          S.feed.unshift({kind:'alert',at,text:base+(r==='ok'?` WhatsApp autom\u00e1tico enviado a ${care()}.`:` No se pudo enviar el WhatsApp autom\u00e1tico: ${AUTO_MSG[r]}`)});render()})}
+        else addFeed('alert',base+` Use el bot\u00f3n verde para avisar a ${care()} por WhatsApp.`)}
+      s.status=target;
+    }
+  });
+  if(S.now>=21*60+30&&!S.sumSent){S.sumSent=true;
+    if(P().waAuto&&P().waSum){const at=S.now;autoSend(P(),$('wa').textContent).then(r=>{S.feed.unshift({kind:'info',at,text:r==='ok'?`Resumen del d\u00eda enviado por WhatsApp a ${care()}.`:`No se pudo enviar el resumen: ${AUTO_MSG[r]}`});render()})}}
+  render();
+}
+function confirmSlot(t){
+  const s=S.slots.find(x=>x.time===t); if(!s||s.status==='taken')return;
+  s.late=s.status==='missed'; s.status='taken'; s.takenAt=S.now; S.lastTaken=s.time;
+  s.meds.forEach(id=>{const m=medById(id);if(m)m.stock=Math.max(0,m.stock-(+m.qty||1))});
+  if(s.late)addFeed('info',`${senior()} confirmó las de ${fmt12(s.min)} con retraso, a las ${fmt12(S.now)}.`);
+  checkStock(); render();
+}
+const medById=id=>S.meds.find(m=>m.id===id);
+function advance(n){S.now=Math.min(S.now+n,23*60+59);update()}
+function stopPlay(){if(timer){clearInterval(timer);timer=null}$('bPlay').textContent='Reproducir'}
+
+function pill(m,sm){return m.photo?`<span class="pill ph${sm?' sm':''}" aria-hidden="true"><img src="${m.photo}" alt=""></span>`:`<span class="pill${sm?' sm':''}" aria-hidden="true"><i class="${m.shape}" style="background:${m.color}"></i></span>`}
+const WA_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2l-.4-.3z"/></svg>';
+const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+
+function renderSenior(){
+  const active=S.slots.find(s=>['due','retry','missed'].includes(s.status));
+  const next=S.slots.find(s=>s.status==='pending');
+  const hello=(S.now<12*60?'Buen d\u00eda':S.now<19*60?'Buenas tardes':'Buenas noches')+', '+esc(senior());
+  let h='';
+  if(active){
+    h+=`<div class="big-time num">${fmt12(S.now).replace(/ .*/,'')}</div>`;
+    if(active.status!=='due')h+=`<span class="retry">Recordatorio otra vez</span>`;
+    h+=`<div class="callout">Es hora de ${active.meds.length>1?'estas '+active.meds.length+' pastillas':'esta pastilla'}</div>`;
+    h+=`<div class="pill-list">${active.meds.map(id=>{const m=medById(id);return `<div class="pill-row">${pill(m)}<div><b>${esc(m.name)}</b><span>${esc(m.dose)} \u00b7 ${esc(howMuch(m))}</span>${m.note?`<span class="note">${esc(m.note)}</span>`:''}</div></div>`}).join('')}</div>`;
+    h+=`<button class="voice" type="button" id="cVoiceBtn">${SPK}Escuchar a ${esc(care())}</button>`;
+    h+=`<button class="take" type="button" id="cTake" data-t="${active.time}">Ya me la tomé</button>`;
+  }else{
+    const last=S.slots.find(s=>s.time===S.lastTaken);
+    h+=`<div class="hello">${hello}</div><div class="big-time num">${fmt12(S.now).replace(/ .*/,'')}</div>`;
+    if(last){h+=`<div class="done"><div class="check">${CHECK}</div><b>Ya se tomó las pastillas de las ${fmt12(last.min)}</b><p>Lo confirmó a las ${fmt12(last.takenAt)}. No tiene que tomarlas otra vez.</p></div>`}
+    h+=next?`<div class="next"><small>Próxima pastilla</small><b class="num">${fmt12(next.min)}</b><div class="names">${next.meds.map(id=>esc(medById(id).name)).join(' y ')}</div></div>`
+      :`<div class="done"><div class="check">${CHECK}</div><b>Terminó por hoy</b><p>Ya se tomó todas las pastillas del día.</p></div>`;
+  }
+  $('carmen').innerHTML=h;
+  const t=$('cTake'); if(t)t.onclick=()=>confirmSlot(t.dataset.t);
+  const v=$('cVoiceBtn'); if(v)v.onclick=()=>{const was=sound;sound=true;speak(active);sound=was};
+}
+function chip(s){
+  return {pending:'<span class="chip pending">Pendiente</span>',due:'<span class="chip due">Sonando</span>',retry:'<span class="chip retry">2.º recordatorio</span>',missed:'<span class="chip missed">Sin confirmar</span>'}[s.status]
+    ||(s.late?`<span class="chip late">Tarde · ${fmt(s.takenAt)}</span>`:`<span class="chip taken">Tomada · ${fmt(s.takenAt)}</span>`);
+}
+function todayAdh(){
+  const due=S.slots.filter(s=>s.status==='taken'||s.status==='missed');
+  const ok=S.slots.filter(s=>s.status==='taken').length;
+  return {pct:due.length?Math.round(ok/due.length*100):null,ok,total:S.slots.length};
+}
+function renderPanel(){
+  const missed=S.slots.filter(s=>s.status==='missed');
+  const a=todayAdh();
+  const st=$('status');
+  if(missed.length){st.className='status bad';st.innerHTML=`<span class="dot"></span><div><b>Falta confirmar la toma de las ${missed.map(s=>fmt12(s.min)).join(', ')}</b><span>Llame a ${esc(senior())} o pida a alguien cercano que la visite.</span><br><a class="btn wa-btn" target="_blank" rel="noopener" href="${esc(waLink(fullPhone(P()),`MediCuida \u26a0\ufe0f ${senior()} no ha confirmado las pastillas de las ${missed.map(s=>fmt12(s.min)).join(', ')}. Por favor comun\u00edquese con ${senior()}.`))}">${WA_SVG} Enviar alerta por WhatsApp a ${esc(care())}</a></div>`}
+  else{st.className='status ok';st.innerHTML=`<span class="dot"></span><div><b>Todo en orden</b><span>${a.ok} de ${a.total} tomas confirmadas hoy. No necesita llamar.</span></div>`}
+  $('adh').textContent=`${a.ok}/${a.total} confirmadas`;
+  $('tl').innerHTML=S.slots.map(s=>`<li><span class="t num">${s.time}</span><span class="m">${s.meds.map(id=>esc(medById(id).name)).join(', ')}</span>${chip(s)}</li>`).join('');
+  $('feed').innerHTML=S.feed.length?S.feed.map(f=>`<li class="${f.kind}"><span class="k"></span><div>${esc(f.text)}<small class="num">${fmt12(f.at)}</small></div></li>`).join(''):`<p class="empty">Sin alertas. Mientras ${esc(senior())} confirme a tiempo, MediCuida no lo interrumpe.</p>`;
+  $('inv').innerHTML=S.meds.map(m=>{const d=daysLeft(m),low=d<=5,pct=Math.min(100,Math.round(m.stock/m.full*100));
+    return `<div class="inv-row${low?' low':''}">${pill(m,1)}<div><div class="nm">${esc(m.name)} <small>${esc(m.dose)} · ${m.stock} und.</small></div><div class="meter"><i style="width:${pct}%"></i></div></div><div class="d num">${d} días${low?'<br>Reclamar '+claimDate(m).getDate()+'/'+(claimDate(m).getMonth()+1):''}</div></div>`}).join('');
+  const low=S.meds.filter(m=>daysLeft(m)<=5);
+  const lines=S.slots.map(s=>`${s.status==='taken'?(s.late?'⚠️':'✅'):s.status==='missed'?'❌':'⏳'} ${fmt12(s.min)} – ${s.meds.map(id=>medById(id).name).join(', ')}`);
+  const waTxt=`MediCuida · Resumen de ${first(P().sName)||senior()} (${fdate(TODAY)})\n${lines.join('\n')}\nCumplimiento: ${a.ok} de ${a.total} tomas.`+(low.length?`\nReclamar pronto en ${eps()}: ${low.map(m=>m.name).join(', ')}.`:'');
+  $('wa').textContent=waTxt; $('waSummary').href=waLink(fullPhone(P()),waTxt);
+  $('waSummary').lastChild.textContent=' Enviar por WhatsApp'+(P().cPhone?' a '+care():'');
+}
+function render(){
+  $('clock').textContent=fmt(S.now); $('phTime').textContent=fmt12(S.now).replace(/ .*/,'');
+  renderSenior(); renderPanel();
+}
+function openReport(){
+  const hist=REG.history||[];
+  const vals=[...Array(6)].map((_,i)=>hist.length===6?hist[i]:null).concat([todayAdh().pct]);
+  $('mTitle').textContent='Reporte de adherencia · '+(P().sName||senior());
+  $('mSub').textContent=REG.demo?'Últimos 7 días (6 días de ejemplo + hoy en vivo). En la app Android se exporta en PDF para el control médico.':'El historial se llena con cada día de uso. En la app Android se exporta en PDF para el control médico.';
+  $('bars').innerHTML=vals.map(v=>`<div><span>${v==null?'–':v+'%'}</span><i class="${v!=null&&v<80?'lowv':''}" style="height:${v==null?2:Math.max(v,4)*1.1}px"></i></div>`).join('');
+  $('blabels').innerHTML=vals.map((v,i)=>{const d=new Date(TODAY);d.setDate(d.getDate()-6+i);return `<span>${i===6?'hoy':DAYS[d.getDay()]+' '+d.getDate()}</span>`}).join('');
+  $('mTbl').innerHTML=S.meds.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td class="num">${m.times.join(' · ')}</td><td class="num">${m.stock}</td></tr>`).join('');
+  $('modal').hidden=false; $('bClose').focus();
+}
+
+$('bPlay').onclick=()=>{if(timer)stopPlay();else{timer=setInterval(()=>advance(1),700);$('bPlay').textContent='Pausar'}};
+$('b5').onclick=()=>advance(5); $('b15').onclick=()=>advance(15);
+$('bNext').onclick=()=>{const n=S.slots.find(s=>s.status==='pending');if(n){S.now=n.min;update()}};
+$('bSound').onclick=()=>{sound=!sound;$('bSound').setAttribute('aria-pressed',sound);$('bSound').textContent='Voz: '+(sound?'encendida':'apagada');if(!sound)stopVoice();};
+$('bReset').onclick=resetDay;
+$('bNewReg').onclick=showWelcome;
+$('bReport').onclick=openReport;
+$('bClose').onclick=()=>{$('modal').hidden=true};
+$('modal').onclick=e=>{if(e.target.id==='modal')$('modal').hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('modal').hidden=true});
+$('bCopy').onclick=()=>{const txt=$('wa').textContent;
+  try{navigator.clipboard.writeText(txt).then(()=>{$('copyMsg').textContent='Copiado'},()=>sel())}catch(e){sel()}
+  function sel(){const r=document.createRange();r.selectNodeContents($('wa'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyMsg').textContent='Texto seleccionado: cópielo con Ctrl+C'}};
+$('cfg').onsubmit=e=>{e.preventDefault();
+  const name=$('fName').value.trim(),dose=$('fDose').value.trim(),time=$('fTime').value,stock=+$('fStock').value;
+  if(!name||!dose||!time||!stock)return;
+  const m={id:'m'+Date.now(),name,dose,times:[time],form:'tableta',qty:1,note:'',photo:fPhotoData,color:$('fColor').value,shape:$('fShape').value,stock,full:Math.max(stock,30)};
+  S.meds.push(clone(m)); REG.meds.push(m); if(!REG.demo)save();
+  S.slots=buildSlots(S.slots); checkStock(); update(true);
+  $('cfgMsg').textContent=`${name} agregado a las ${fmt12(toMin(time))}.`; $('fName').value=''; $('fDose').value=''; fPhotoData=''; showPrev($('fPhotoPrev'),'');
+};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $('views').dataset.tab=b.dataset.tab;
+});
+showWelcome();
+</script>
+
+</body>
+</html>
